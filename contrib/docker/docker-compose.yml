@@ -1,0 +1,33 @@
+version: '3'
+services:
+  regtest_node:
+    image: blockstream/bitcoind:latest
+    volumes:
+      - shared_cookie:/root/.bitcoin
+      - $PWD/entrypoint.sh:/entrypoint.sh
+    ports:
+      - "18443:18443"
+    entrypoint:
+      - "bash"
+    command:
+      - "-c"
+      - "/entrypoint.sh"
+
+  golang_app:
+    build:
+      context: ../../
+      dockerfile: $PWD/Dockerfile
+    environment:
+      - RPC_HOST=regtest_node:18443
+      - RPC_COOKIE_PATH=/shared/regtest/.cookie
+      - CACHE_EXPIRE_SECONDS=14
+      - PORT=8090
+    volumes:
+      - shared_cookie:/shared
+    depends_on:
+      - regtest_node
+    ports:
+      - "8090:8090"
+
+volumes:
+  shared_cookie:
