@@ -18,11 +18,11 @@ func handleHealthcheck(w http.ResponseWriter, r *http.Request, client *rpcclient
 			log.Printf("Unable to fetch blockchaininfo (nil or err): %s", err)
 			result = 0
 		} else {
-			result = int(*verificationProgress)
+			result = *verificationProgress
 			cache.Set(key, result, expireSeconds)
 		}
 	}
-	resp := map[string]bool{"synced": result == 1}
+	resp := map[string]bool{"synced": result > 0.9999}
 	jsonResp, _ := json.Marshal(resp)
 	w.Header().Set("Content-Type", "application/json")
 	if result < 1 {

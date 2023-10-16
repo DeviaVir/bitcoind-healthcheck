@@ -28,11 +28,13 @@ func TestGetBlockChainInfo(t *testing.T) {
 
 	verificationProgress := float64(0.9)
 	mockClient.On("GetBlockChainInfo").Return(&btcjson.GetBlockChainInfoResult{VerificationProgress: verificationProgress}, nil).Once()
-	result := getBlockChainInfo(mockClient)
+	result, err := getBlockChainInfo(mockClient)
 	assert.NotNil(t, result)
+	assert.Nil(t, err)
 	assert.Equal(t, verificationProgress, *result)
 
 	mockClient.On("GetBlockChainInfo").Return(nil, errors.New("Failed to fetch")).Once()
-	result = getBlockChainInfo(mockClient)
+	result, err = getBlockChainInfo(mockClient)
+	assert.NotNil(t, err)
 	assert.Nil(t, result)
 }

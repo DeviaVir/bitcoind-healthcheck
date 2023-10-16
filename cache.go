@@ -6,7 +6,7 @@ import (
 )
 
 type CacheItem struct {
-	Result     int
+	Result     float64
 	Expiration time.Time
 }
 
@@ -21,13 +21,13 @@ func NewCache() *Cache {
 	}
 }
 
-func (c *Cache) Set(key string, value int, duration time.Duration) {
+func (c *Cache) Set(key string, value float64, duration time.Duration) {
 	c.mu.Lock()
 	c.items[key] = CacheItem{Result: value, Expiration: time.Now().Add(duration)}
 	c.mu.Unlock()
 }
 
-func (c *Cache) Get(key string) (int, bool) {
+func (c *Cache) Get(key string) (float64, bool) {
 	c.mu.RLock()
 	item, exists := c.items[key]
 	if !exists || item.Expiration.Before(time.Now()) {
