@@ -13,12 +13,14 @@ func handleHealthcheck(w http.ResponseWriter, r *http.Request, client *rpcclient
 	key := "verificationprogress"
 	result, exists := cache.Get(key)
 	if !exists {
-		verificationProgress := getBlockChainInfo(client)
-		if verificationProgress == nil {
-			log.Printf("Unable to fetch blockchaininfo")
+		verificationProgress, err := getBlockChainInfo(client)
+		if verificationProgress == nil || err != nil {
+			log.Printf("Unable to fetch blockchaininfo (nil or err): %s", err)
+			result = 0
+		} else {
+			result = int(*verificationProgress)
+			cache.Set(key, result, expireSeconds)
 		}
-		result = int(*verificationProgress)
-		cache.Set(key, result, expireSeconds)
 	}
 	resp := map[string]bool{"synced": result == 1}
 	jsonResp, _ := json.Marshal(resp)
