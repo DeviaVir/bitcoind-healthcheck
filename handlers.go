@@ -25,7 +25,7 @@ func handleHealthcheck(w http.ResponseWriter, r *http.Request, client *rpcclient
 	resp := map[string]bool{"synced": result > 0.9999}
 	jsonResp, _ := json.Marshal(resp)
 	w.Header().Set("Content-Type", "application/json")
-	if result < 1 {
+	if result < 0.9999 {
 		http.Error(w, string(jsonResp), http.StatusServiceUnavailable)
 		return
 	}
