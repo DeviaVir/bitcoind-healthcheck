@@ -1,0 +1,46 @@
+name: Integration Test
+
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.3.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
+        continue-on-error: false
+
+      - name: Set up Docker Compose
+        run: |
+          cd contrib/docker
+          docker-compose up -d
+
+      - name: Wait for service to be available
+        run: |
+          TIMEOUT=30
+          RETRY_INTERVAL=5
+          SUCCESS=false
+          for ((i=0;i<TIMEOUT;i+=RETRY_INTERVAL)); do
+            if curl -s --head http://localhost:8090 | grep "200 OK" > /dev/null; then
+              SUCCESS=true
+              break
+            fi
+            sleep $RETRY_INTERVAL
+          done
+          if [ "$SUCCESS" = false ]; then
+            echo "Service did not start successfully."
+            exit 1
+          fi
+
+      - name: Tear down Docker Compose
+        if: always()
+        run: |
+          cd contrib/docker
+          docker-compose -f docker-compose.yml down
