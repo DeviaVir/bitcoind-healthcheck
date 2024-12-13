@@ -1,4 +1,3 @@
-version: '3'
 services:
   regtest_node:
     image: blockstream/bitcoind:latest
@@ -9,6 +8,8 @@ services:
       - "18443:18443"
     entrypoint:
       - "bash"
+    environment:
+      - TXINDEX_ENABLED=1
     command:
       - "-c"
       - "/entrypoint.sh"
@@ -22,6 +23,8 @@ services:
       - RPC_COOKIE_PATH=/shared/regtest/.cookie
       - CACHE_EXPIRE_SECONDS=14
       - PORT=8090
+      - TXINDEX_ENABLED=true
+      - FEE_ESTIMATION_ENABLED=false  # not a thing in regtest
     volumes:
       - shared_cookie:/shared
     depends_on:

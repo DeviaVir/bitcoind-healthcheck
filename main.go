@@ -26,6 +26,16 @@ func main() {
 		connCfg.CookiePath = GetEnv("RPC_COOKIE_PATH", "")
 	}
 
+	waitForTxIndex := false
+	if GetEnv("TXINDEX_ENABLED", "") == "true" {
+		waitForTxIndex = true
+	}
+
+	waitForFeeEstimation := false
+	if GetEnv("FEE_ESTIMATION_ENABLED", "") == "true" {
+		waitForFeeEstimation = true
+	}
+
 	client, err := rpcclient.New(connCfg, nil)
 	if err != nil {
 		log.Fatalf("Failed to create client: %s", err)
@@ -38,7 +48,7 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handleHealthcheck(w, r, client, time.Duration(time.Duration(cacheExpireSeconds)*time.Second), cache)
+		handleHealthcheck(w, r, client, time.Duration(time.Duration(cacheExpireSeconds)*time.Second), waitForTxIndex, waitForFeeEstimation, cache)
 	})
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", GetEnv("PORT", "8080")), nil))
 }
