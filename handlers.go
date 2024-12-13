@@ -47,7 +47,7 @@ func handleHealthcheck(w http.ResponseWriter, r *http.Request, client *rpcclient
 	}
 
 	progressRes := caller("verificationprogress", client, cache, expireSeconds, getBlockChainInfo)
-	resp["verificationprogress"] = progressRes > 0.0
+	resp["verificationprogress"] = progressRes > 0.9999
 	if !resp["verificationprogress"] {
 		allTrue = false
 	}
