@@ -1,5 +1,7 @@
 # Start by building the application.
-FROM golang:1.23 as build
+FROM golang:1.23 AS build
+
+ENV CGO_ENABLED=0
 
 WORKDIR /go/src/app
 ADD . /go/src/app
