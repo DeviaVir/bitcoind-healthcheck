@@ -11,8 +11,10 @@ type BlockChainInfoGetter interface {
 }
 
 func getBlockChainInfo(client BlockChainInfoGetter) (*float64, error) {
+	vLog("getters.go: Getting blockchain info")
 	info, err := client.GetBlockChainInfo()
 	if err != nil || info == nil {
+		vLog("getters.go: Error getting blockchain info: %s", err)
 		return nil, err
 	}
 
@@ -20,8 +22,10 @@ func getBlockChainInfo(client BlockChainInfoGetter) (*float64, error) {
 }
 
 func getIndexInfo(client BlockChainInfoGetter) (*float64, error) {
+	vLog("getters.go: Getting index info")
 	info, err := client.GetIndexInfo()
 	if err != nil || info == nil {
+		vLog("getters.go: Error getting index info: %s", err)
 		return nil, err
 	}
 
@@ -34,8 +38,10 @@ func getIndexInfo(client BlockChainInfoGetter) (*float64, error) {
 }
 
 func getFeeEstimation(client BlockChainInfoGetter) (*float64, error) {
+	vLog("getters.go: Getting fee estimation")
 	info, err := client.EstimateSmartFee(1, nil)
 	if err != nil || info == nil {
+		vLog("getters.go: Error getting fee estimation: %s", err)
 		return nil, err
 	}
 

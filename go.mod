@@ -1,6 +1,6 @@
 module github.com/deviavir/bitcoind-healthcheck
 
-go 1.21
+go 1.23
 
 // `go get github.com/deviavir/btcd@fffd8b2def3be6238c9bdfcf9bebdde1c41de312`
 // to get and replace using a specific commit version
