@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,7 +11,12 @@ import (
 	"github.com/btcsuite/btcd/rpcclient"
 )
 
+var verbose bool
+
 func main() {
+	flag.BoolVar(&verbose, "v", false, "enable verbose logging")
+	flag.Parse()
+
 	cache := NewCache()
 
 	connCfg := &rpcclient.ConnConfig{

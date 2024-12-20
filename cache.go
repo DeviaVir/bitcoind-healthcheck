@@ -16,18 +16,21 @@ type Cache struct {
 }
 
 func NewCache() *Cache {
+	vLog("cache.go: Creating new cache")
 	return &Cache{
 		items: make(map[string]CacheItem),
 	}
 }
 
 func (c *Cache) Set(key string, value float64, duration time.Duration) {
+	vLog("cache.go: Setting %s to %f", key, value)
 	c.mu.Lock()
 	c.items[key] = CacheItem{Result: value, Expiration: time.Now().Add(duration)}
 	c.mu.Unlock()
 }
 
 func (c *Cache) Get(key string) (float64, bool) {
+	vLog("cache.go: Getting %s", key)
 	c.mu.RLock()
 	item, exists := c.items[key]
 	if !exists || item.Expiration.Before(time.Now()) {

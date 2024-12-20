@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 )
 
@@ -10,4 +11,11 @@ func GetEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+// vLog logs a message if the verbose flag is set
+func vLog(format string, a ...interface{}) {
+	if verbose {
+		log.Printf(format, a...)
+	}
 }
