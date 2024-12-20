@@ -18,6 +18,7 @@ func getBlockChainInfo(client BlockChainInfoGetter) (*float64, error) {
 		return nil, err
 	}
 
+	vLog("getters.go: Blockchain info: %f", info.VerificationProgress)
 	return &info.VerificationProgress, nil
 }
 
@@ -32,6 +33,7 @@ func getIndexInfo(client BlockChainInfoGetter) (*float64, error) {
 	var result float64
 	result = 0.0
 	if info.Synced {
+		vLog("getters.go: Index is synced")
 		result = 1.0
 	}
 	return &result, nil
@@ -48,6 +50,7 @@ func getFeeEstimation(client BlockChainInfoGetter) (*float64, error) {
 	var result float64
 	result = 0.0
 	if info.FeeRate != nil {
+		vLog("getters.go: Fee estimation: %d", info.FeeRate)
 		result = 1.0
 	}
 	return &result, nil
