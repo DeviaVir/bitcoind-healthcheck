@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/btcsuite/btcd/rpcclient"
@@ -14,7 +15,11 @@ func caller(key string, client *rpcclient.Client, cache *Cache, expiration time.
 	if !exists {
 		resp, err := fn(client)
 		if resp == nil || err != nil {
-			log.Printf("Unable to fetch %s (nil or err): %s", key, err)
+			vLog("Unable to fetch %s (nil or err): %s", key, err)
+			errMsg := err.Error()
+			if strings.Contains(errMsg, "status code") && strings.Contains(errMsg, "401") {
+				log.Fatalf("Authorization failed, killing the healthchecker to refresh credentials")
+			}
 			result = float64(0)
 		} else {
 			result = *resp

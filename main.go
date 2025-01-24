@@ -32,6 +32,13 @@ func main() {
 		connCfg.CookiePath = GetEnv("RPC_COOKIE_PATH", "")
 	}
 
+	if connCfg.CookiePath != "" {
+		// Try to wait for cookie file to exist and have content for 10 mins
+		if err := waitForFile(connCfg.CookiePath, 10*time.Minute); err != nil {
+			log.Fatalf("Error waiting for cookie file %s: %v", connCfg.CookiePath, err)
+		}
+	}
+
 	waitForTxIndex := false
 	if GetEnv("TXINDEX_ENABLED", "") == "true" {
 		waitForTxIndex = true
