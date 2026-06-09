@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -24,14 +25,14 @@ func caller(key string, client *rpcclient.Client, cache *Cache, expiration time.
 	return result
 }
 
-func handleHealthcheck(w http.ResponseWriter, r *http.Request, client *rpcclient.Client, expiration time.Duration, waitForTxIndex bool, waitForFeeEstimation bool, cache *Cache) {
+func handleHealthcheck(w http.ResponseWriter, r *http.Request, client *rpcclient.Client, expiration time.Duration, waitForTxIndex bool, waitForFeeEstimation bool, feeEstimationTarget int64, cache *Cache) {
 	w.Header().Set("Content-Type", "application/json")
 
 	resp := make(map[string]bool)
 	allTrue := true
 
-	vLog("handler.go: handling healthcheck")
-	vLog("handler.go: handling txindex")
+	vLog("handlers.go: handling healthcheck")
+	vLog("handlers.go: handling txindex")
 	if waitForTxIndex {
 		indexRes := caller("indexinfo", client, cache, expiration, getIndexInfo)
 		resp["gettxindexinfo"] = indexRes > 0.0
@@ -40,26 +41,28 @@ func handleHealthcheck(w http.ResponseWriter, r *http.Request, client *rpcclient
 		}
 	}
 
-	vLog("handler.go: handling fee estimation")
+	vLog("handlers.go: handling fee estimation")
 	if waitForFeeEstimation {
-		feeRes := caller("estimatefee", client, cache, expiration, getFeeEstimation)
+		feeRes := caller(fmt.Sprintf("estimatefee:%d", feeEstimationTarget), client, cache, expiration, func(client BlockChainInfoGetter) (*float64, error) {
+			return getFeeEstimation(client, feeEstimationTarget)
+		})
 		resp["estimatesmartfee"] = feeRes > 0.0
 		if !resp["estimatesmartfee"] {
 			allTrue = false
 		}
 	}
 
-	vLog("handler.go: handling blockchain info")
+	vLog("handlers.go: handling blockchain info")
 	progressRes := caller("verificationprogress", client, cache, expiration, getBlockChainInfo)
 	resp["verificationprogress"] = progressRes > 0.9999
 	if !resp["verificationprogress"] {
 		allTrue = false
 	}
 
-	vLog("handler.go: sending response")
+	vLog("handlers.go: sending response")
 	jsonResp, _ := json.Marshal(resp)
 	if !allTrue {
-		vLog("handler.go: not all checks passed")
+		vLog("handlers.go: not all checks passed")
 		http.Error(w, string(jsonResp), http.StatusServiceUnavailable)
 		return
 	}
