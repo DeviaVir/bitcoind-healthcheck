@@ -31,7 +31,7 @@ func (m *MockClient) GetIndexInfo() (*btcjson.GetIndexInfoResult, error) {
 }
 
 func (m *MockClient) EstimateSmartFee(blocks int64, mode *btcjson.EstimateSmartFeeMode) (*btcjson.EstimateSmartFeeResult, error) {
-	args := m.Called()
+	args := m.Called(blocks, mode)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -66,20 +66,20 @@ func TestGetBlockChainInfo(t *testing.T) {
 	assert.Nil(t, result)
 
 	fee := 0.04094321
-	mockClient.On("EstimateSmartFee").Return(&btcjson.EstimateSmartFeeResult{FeeRate: &fee}, nil).Once()
-	result, err = getFeeEstimation(mockClient)
+	mockClient.On("EstimateSmartFee", int64(144), (*btcjson.EstimateSmartFeeMode)(nil)).Return(&btcjson.EstimateSmartFeeResult{FeeRate: &fee}, nil).Once()
+	result, err = getFeeEstimation(mockClient, 144)
 	assert.NotNil(t, result)
 	assert.Nil(t, err)
 	assert.Equal(t, 1.0, *result)
 
-	mockClient.On("EstimateSmartFee").Return(&btcjson.EstimateSmartFeeResult{}, nil).Once()
-	result, err = getFeeEstimation(mockClient)
+	mockClient.On("EstimateSmartFee", int64(144), (*btcjson.EstimateSmartFeeMode)(nil)).Return(&btcjson.EstimateSmartFeeResult{}, nil).Once()
+	result, err = getFeeEstimation(mockClient, 144)
 	assert.NotNil(t, result)
 	assert.Nil(t, err)
 	assert.Equal(t, 0.0, *result)
 
-	mockClient.On("EstimateSmartFee").Return(nil, errors.New("Failed to fetch")).Once()
-	result, err = getFeeEstimation(mockClient)
+	mockClient.On("EstimateSmartFee", int64(144), (*btcjson.EstimateSmartFeeMode)(nil)).Return(nil, errors.New("Failed to fetch")).Once()
+	result, err = getFeeEstimation(mockClient, 144)
 	assert.NotNil(t, err)
 	assert.Nil(t, result)
 }

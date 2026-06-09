@@ -42,6 +42,19 @@ func main() {
 		waitForFeeEstimation = true
 	}
 
+	feeEstimationTarget := int64(1)
+	if waitForFeeEstimation {
+		feeEstimationTargetEnv := GetEnv("FEE_ESTIMATION_TARGET", "1")
+		parsedFeeEstimationTarget, err := strconv.ParseInt(feeEstimationTargetEnv, 10, 64)
+		if err != nil {
+			log.Fatalf("Could not convert FEE_ESTIMATION_TARGET=%q to integer: %v", feeEstimationTargetEnv, err)
+		}
+		if parsedFeeEstimationTarget < 1 {
+			log.Fatalf("FEE_ESTIMATION_TARGET must be a positive integer, got %d", parsedFeeEstimationTarget)
+		}
+		feeEstimationTarget = parsedFeeEstimationTarget
+	}
+
 	client, err := rpcclient.New(connCfg, nil)
 	if err != nil {
 		log.Fatalf("Failed to create client: %s", err)
@@ -54,7 +67,7 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handleHealthcheck(w, r, client, time.Duration(time.Duration(cacheExpireSeconds)*time.Second), waitForTxIndex, waitForFeeEstimation, cache)
+		handleHealthcheck(w, r, client, time.Duration(time.Duration(cacheExpireSeconds)*time.Second), waitForTxIndex, waitForFeeEstimation, feeEstimationTarget, cache)
 	})
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", GetEnv("PORT", "8080")), nil))
 }

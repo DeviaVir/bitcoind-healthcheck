@@ -39,9 +39,9 @@ func getIndexInfo(client BlockChainInfoGetter) (*float64, error) {
 	return &result, nil
 }
 
-func getFeeEstimation(client BlockChainInfoGetter) (*float64, error) {
+func getFeeEstimation(client BlockChainInfoGetter, confirmationTarget int64) (*float64, error) {
 	vLog("getters.go: Getting fee estimation")
-	info, err := client.EstimateSmartFee(1, nil)
+	info, err := client.EstimateSmartFee(confirmationTarget, nil)
 	if err != nil || info == nil {
 		vLog("getters.go: Error getting fee estimation: %s", err)
 		return nil, err
