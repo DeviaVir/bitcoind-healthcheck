@@ -55,6 +55,24 @@ func main() {
 		feeEstimationTarget = parsedFeeEstimationTarget
 	}
 
+	waitForSyncHeight := true
+	if GetEnv("SYNC_HEIGHT_CHECK_ENABLED", "true") != "true" {
+		waitForSyncHeight = false
+	}
+
+	syncHeightMaxLag := int64(0)
+	if waitForSyncHeight {
+		syncHeightMaxLagEnv := GetEnv("SYNC_HEIGHT_MAX_LAG", "0")
+		parsedSyncHeightMaxLag, err := strconv.ParseInt(syncHeightMaxLagEnv, 10, 64)
+		if err != nil {
+			log.Fatalf("Could not convert SYNC_HEIGHT_MAX_LAG=%q to integer: %v", syncHeightMaxLagEnv, err)
+		}
+		if parsedSyncHeightMaxLag < 0 {
+			log.Fatalf("SYNC_HEIGHT_MAX_LAG must be zero or a positive integer, got %d", parsedSyncHeightMaxLag)
+		}
+		syncHeightMaxLag = parsedSyncHeightMaxLag
+	}
+
 	client, err := rpcclient.New(connCfg, nil)
 	if err != nil {
 		log.Fatalf("Failed to create client: %s", err)
@@ -67,7 +85,7 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handleHealthcheck(w, r, client, time.Duration(time.Duration(cacheExpireSeconds)*time.Second), waitForTxIndex, waitForFeeEstimation, feeEstimationTarget, cache)
+		handleHealthcheck(w, r, client, time.Duration(time.Duration(cacheExpireSeconds)*time.Second), waitForTxIndex, waitForFeeEstimation, feeEstimationTarget, waitForSyncHeight, syncHeightMaxLag, cache)
 	})
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", GetEnv("PORT", "8080")), nil))
 }

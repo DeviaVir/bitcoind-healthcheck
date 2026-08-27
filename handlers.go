@@ -25,7 +25,7 @@ func caller(key string, client *rpcclient.Client, cache *Cache, expiration time.
 	return result
 }
 
-func handleHealthcheck(w http.ResponseWriter, r *http.Request, client *rpcclient.Client, expiration time.Duration, waitForTxIndex bool, waitForFeeEstimation bool, feeEstimationTarget int64, cache *Cache) {
+func handleHealthcheck(w http.ResponseWriter, r *http.Request, client *rpcclient.Client, expiration time.Duration, waitForTxIndex bool, waitForFeeEstimation bool, feeEstimationTarget int64, waitForSyncHeight bool, syncHeightMaxLag int64, cache *Cache) {
 	w.Header().Set("Content-Type", "application/json")
 
 	resp := make(map[string]bool)
@@ -48,6 +48,17 @@ func handleHealthcheck(w http.ResponseWriter, r *http.Request, client *rpcclient
 		})
 		resp["estimatesmartfee"] = feeRes > 0.0
 		if !resp["estimatesmartfee"] {
+			allTrue = false
+		}
+	}
+
+	vLog("handlers.go: handling sync height")
+	if waitForSyncHeight {
+		syncRes := caller("syncheight", client, cache, expiration, func(client BlockChainInfoGetter) (*float64, error) {
+			return getSyncStatus(client, syncHeightMaxLag)
+		})
+		resp["syncheight"] = syncRes > 0.0
+		if !resp["syncheight"] {
 			allTrue = false
 		}
 	}
