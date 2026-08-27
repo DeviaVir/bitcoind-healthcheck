@@ -66,7 +66,7 @@ func getSyncStatus(client BlockChainInfoGetter, maxBlockLag int64) (*float64, er
 
 	var result float64
 	result = 0.0
-	if int64(info.Blocks)+maxBlockLag >= int64(info.Headers) {
+	if int64(info.Headers)-int64(info.Blocks) <= maxBlockLag {
 		vLog("getters.go: Chain synced to headers: blocks=%d headers=%d", info.Blocks, info.Headers)
 		result = 1.0
 	} else {

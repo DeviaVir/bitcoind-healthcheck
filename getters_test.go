@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"log"
+	"math"
 	"testing"
 
 	"github.com/btcsuite/btcd/btcjson"
@@ -115,6 +116,13 @@ func TestGetSyncStatus(t *testing.T) {
 	assert.NotNil(t, result)
 	assert.Nil(t, err)
 	assert.Equal(t, 0.0, *result)
+
+	// A very large allowed lag must not overflow: synced.
+	mockClient.On("GetBlockChainInfo").Return(&btcjson.GetBlockChainInfoResult{Blocks: 100, Headers: 200}, nil).Once()
+	result, err = getSyncStatus(mockClient, math.MaxInt64)
+	assert.NotNil(t, result)
+	assert.Nil(t, err)
+	assert.Equal(t, 1.0, *result)
 
 	// RPC error: no result.
 	mockClient.On("GetBlockChainInfo").Return(nil, errors.New("Failed to fetch")).Once()

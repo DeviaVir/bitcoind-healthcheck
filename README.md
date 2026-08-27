@@ -12,7 +12,7 @@ check result. Intended for use as a Kubernetes readiness probe sidecar for
 | Check | Enabled | Passes when |
 |---|---|---|
 | `verificationprogress` | always | `getblockchaininfo.verificationprogress > 0.9999` |
-| `syncheight` | default on | `blocks + SYNC_HEIGHT_MAX_LAG >= headers` from `getblockchaininfo` |
+| `syncheight` | default on | `headers - blocks <= SYNC_HEIGHT_MAX_LAG` from `getblockchaininfo` |
 | `gettxindexinfo` | `TXINDEX_ENABLED=true` | txindex reports synced |
 | `estimatesmartfee` | `FEE_ESTIMATION_ENABLED=true` | a fee estimate is available |
 
