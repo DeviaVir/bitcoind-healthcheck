@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"log"
+	"math"
 	"testing"
 
 	"github.com/btcsuite/btcd/btcjson"
@@ -80,6 +81,52 @@ func TestGetBlockChainInfo(t *testing.T) {
 
 	mockClient.On("EstimateSmartFee", int64(144), (*btcjson.EstimateSmartFeeMode)(nil)).Return(nil, errors.New("Failed to fetch")).Once()
 	result, err = getFeeEstimation(mockClient, 144)
+	assert.NotNil(t, err)
+	assert.Nil(t, result)
+}
+
+func TestGetSyncStatus(t *testing.T) {
+	log.SetOutput(nil)
+	mockClient := new(MockClient)
+
+	// Blocks match headers: synced.
+	mockClient.On("GetBlockChainInfo").Return(&btcjson.GetBlockChainInfoResult{Blocks: 100, Headers: 100}, nil).Once()
+	result, err := getSyncStatus(mockClient, 0)
+	assert.NotNil(t, result)
+	assert.Nil(t, err)
+	assert.Equal(t, 1.0, *result)
+
+	// Blocks lag headers: not synced.
+	mockClient.On("GetBlockChainInfo").Return(&btcjson.GetBlockChainInfoResult{Blocks: 100, Headers: 101}, nil).Once()
+	result, err = getSyncStatus(mockClient, 0)
+	assert.NotNil(t, result)
+	assert.Nil(t, err)
+	assert.Equal(t, 0.0, *result)
+
+	// Lag within the allowed maximum: synced.
+	mockClient.On("GetBlockChainInfo").Return(&btcjson.GetBlockChainInfoResult{Blocks: 98, Headers: 100}, nil).Once()
+	result, err = getSyncStatus(mockClient, 2)
+	assert.NotNil(t, result)
+	assert.Nil(t, err)
+	assert.Equal(t, 1.0, *result)
+
+	// Lag beyond the allowed maximum: not synced.
+	mockClient.On("GetBlockChainInfo").Return(&btcjson.GetBlockChainInfoResult{Blocks: 97, Headers: 100}, nil).Once()
+	result, err = getSyncStatus(mockClient, 2)
+	assert.NotNil(t, result)
+	assert.Nil(t, err)
+	assert.Equal(t, 0.0, *result)
+
+	// A very large allowed lag must not overflow: synced.
+	mockClient.On("GetBlockChainInfo").Return(&btcjson.GetBlockChainInfoResult{Blocks: 100, Headers: 200}, nil).Once()
+	result, err = getSyncStatus(mockClient, math.MaxInt64)
+	assert.NotNil(t, result)
+	assert.Nil(t, err)
+	assert.Equal(t, 1.0, *result)
+
+	// RPC error: no result.
+	mockClient.On("GetBlockChainInfo").Return(nil, errors.New("Failed to fetch")).Once()
+	result, err = getSyncStatus(mockClient, 0)
 	assert.NotNil(t, err)
 	assert.Nil(t, result)
 }

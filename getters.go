@@ -55,3 +55,22 @@ func getFeeEstimation(client BlockChainInfoGetter, confirmationTarget int64) (*f
 	}
 	return &result, nil
 }
+
+func getSyncStatus(client BlockChainInfoGetter, maxBlockLag int64) (*float64, error) {
+	vLog("getters.go: Getting sync status")
+	info, err := client.GetBlockChainInfo()
+	if err != nil || info == nil {
+		vLog("getters.go: Error getting blockchain info: %s", err)
+		return nil, err
+	}
+
+	var result float64
+	result = 0.0
+	if int64(info.Headers)-int64(info.Blocks) <= maxBlockLag {
+		vLog("getters.go: Chain synced to headers: blocks=%d headers=%d", info.Blocks, info.Headers)
+		result = 1.0
+	} else {
+		vLog("getters.go: Chain lags headers: blocks=%d headers=%d", info.Blocks, info.Headers)
+	}
+	return &result, nil
+}
